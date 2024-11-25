@@ -1,18 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity,StatusBar  } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/Ionicons'; // Asegúrate de tener esta librería instalada
 import 'react-native-gesture-handler'; // Importar esto para el manejo de gestos
 import { useNavigation } from '@react-navigation/native';
 import Navigation from './src/Navigation/Navigation';
+import AuthContex from './src/Context/AuthContex';
 
 
 
 const App = () => {
   return (
-    
-   <Navigation />
+
+    <AuthContex>
+      <StatusBar barStyle="light-content" backgroundColor="#0090e3" />
+      <Navigation />
+    </AuthContex>
+
   
    
     

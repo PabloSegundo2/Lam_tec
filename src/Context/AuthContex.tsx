@@ -1,18 +1,15 @@
-import React, { createContext, useState } from 'react';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
 
-const AuthProvider = ({ children }: any) => {
+const AuthContex = ({ children } : any) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const login = () => setIsLoggedIn(true);
-
+  const login = async () => setIsLoggedIn(true); 
   const logout = async () => {
     await AsyncStorage.removeItem('userEmail'); 
-    setIsLoggedIn(false); 
+    setIsLoggedIn(false);
   };
 
   return (
@@ -22,4 +19,4 @@ const AuthProvider = ({ children }: any) => {
   );
 };
 
-export default AuthProvider;
+export default AuthContex;

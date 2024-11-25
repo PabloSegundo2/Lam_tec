@@ -1,26 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { AuthContext } from '../Context/AuthContex';
+import { CommonActions } from '@react-navigation/native';
+
 
 const CustomDrawerContent = (props) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { logout } = useContext(AuthContext); 
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const userEmail = await AsyncStorage.getItem('userEmail');
-        setIsLoggedIn(!!userEmail);
-      } catch (error) {
-        console.error('Error al verificar autenticación:', error);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
-  
-  const handleLogout = async () => {
+  const handleLogout = () => {
     Alert.alert(
       'Cerrar sesión',
       '¿Estás seguro de que deseas cerrar sesión?',
@@ -29,25 +18,20 @@ const CustomDrawerContent = (props) => {
         {
           text: 'Cerrar sesión',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.removeItem('userEmail'); // Eliminar datos del usuario
-              setIsLoggedIn(false); // Actualizar el estado de autenticación
-  
-              // Redirigir a la pantalla Principal con el reset de navegación
-              props.navigation.reset({
+          onPress: () => {
+            logout(); 
+            props.navigation.dispatch(
+              CommonActions.reset({
                 index: 0,
-                routes: [{ name: 'Principal' }],
-              });
-            } catch (error) {
-              console.error('Error al cerrar sesión:', error);
-            }
+                routes: [{ name: 'Principal' }], 
+              })
+            );
+            props.navigation.closeDrawer();
           },
         },
       ]
     );
   };
-  
 
   return (
     <View style={styles.drawerContainer}>
@@ -58,10 +42,7 @@ const CustomDrawerContent = (props) => {
         </View>
       </View>
 
-      <DrawerContentScrollView
-        {...props}
-        contentContainerStyle={styles.scrollViewContent}
-      >
+      <DrawerContentScrollView {...props} contentContainerStyle={styles.scrollViewContent}>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
 
@@ -101,7 +82,7 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     backgroundColor: 'white',
-    paddingTop: 10,
+
   },
   footer: {
     borderTopWidth: 1,
