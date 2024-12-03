@@ -12,31 +12,34 @@ import API from '../API/API';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function CreateUser({ navigation }) {
+export default function CreateUser({ navigation }: any) {
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
   const [Contraseña, setContraseña] = useState('');
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false); // Visibilidad de contraseña
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const handleRegister = async () => {
     if (!nombre || !correo || !Contraseña) {
       Alert.alert('Error', 'Por favor, complete todos los campos.');
       return;
     }
-  
+
+    const emailRegex = /^[^\s@]+@gmail\.com$/;
+    if (!emailRegex.test(correo)) {
+      Alert.alert('Error', 'Por favor, ingrese un correo válido de Gmail.');
+      return;
+    }
+
     try {
       const response = await API.post('/registros', { nombre, correo, Contraseña });
       console.log('Respuesta del servidor:', response.data);
-  
+
       if (response.data.message === 'Registro creado exitosamente') {
-        // Almacenar el correo en AsyncStorage después de un registro exitoso
-        await AsyncStorage.setItem('userEmail', correo); 
-  
-        Alert.alert('Éxito', 'Inicia con tu ususario recien creado ', [
+        await AsyncStorage.setItem('userEmail', correo);
+        Alert.alert('Éxito', 'Inicia con tu usuario recién creado.', [
           {
             text: 'OK',
             onPress: () => {
-              // Redirigir a la pantalla Login con un mensaje
               navigation.navigate('Login', {
                 message: 'Por favor, inicia sesión con tu usuario creado.',
               });
@@ -46,12 +49,14 @@ export default function CreateUser({ navigation }) {
       } else {
         Alert.alert('Error', response.data.message || 'Error al registrar el usuario.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al registrar usuario:', error.response?.data || error.message);
       Alert.alert('Error', error.response?.data?.error || 'Error desconocido.');
     }
   };
-  
+
+  const isEmailValid = /^[^\s@]+@gmail\.com$/.test(correo);
+
   return (
     <View style={styles.padre}>
       <View>
@@ -72,16 +77,26 @@ export default function CreateUser({ navigation }) {
         </View>
 
         {/* Input de Correo */}
-        <View style={styles.cajaTexto}>
+
+
+        <View
+          style={[
+            styles.cajaTexto,
+            { borderColor: isEmailValid || correo === '' ? '#F0F0F0' : 'red', borderWidth: 1 },
+          ]}
+        >
           <TextInput
-            placeholder="correo@ejemplo.com"
+            placeholder="correo@gmail.com"
             placeholderTextColor="#BDBDBD"
             style={styles.inputBox}
             value={correo}
             onChangeText={setCorreo}
             keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
           />
         </View>
+
 
         {/* Input de Contraseña */}
         <View style={[styles.cajaTexto, styles.passwordContainer]}>

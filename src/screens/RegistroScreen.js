@@ -116,6 +116,7 @@ const RegistroScreen = () => {
               placeholderTextColor={'black'}
               onChangeText={onChange}
               keyboardType="phone-pad"
+              maxLength={10}
             />
             {error && <Text style={styles.errorText}>{error.message}</Text>}
           </>

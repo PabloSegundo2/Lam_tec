@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; 
+import Icon from 'react-native-vector-icons/Ionicons';
 import API from '../API/API';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LoginScreen = ({ navigation, onLoginSuccess }) => {
+const LoginScreen = ({ navigation, onLoginSuccess }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -25,24 +25,31 @@ const LoginScreen = ({ navigation, onLoginSuccess }) => {
       return;
     }
 
+
+    const emailRegex = /^[^\s@]+@gmail\.com$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Por favor, ingrese un correo válido de Gmail');
+      return;
+    }
+
     try {
       const response = await API.post('/login', { email, password });
       console.log('Respuesta del servidor:', response.data);
 
       if (response.data.success) {
-        await AsyncStorage.setItem('userEmail', email); // Guardar el correo en AsyncStorage
+        await AsyncStorage.setItem('userEmail', email);
         Alert.alert('Bienvenido', response.data.message);
 
-        // Notifica al componente principal que el login fue exitoso
+
         if (onLoginSuccess) {
           onLoginSuccess(navigation);
         } else {
-          navigation.navigate('Home'); // Navegar a la pantalla Home (fallback)
+          navigation.navigate('Home');
         }
       } else {
         Alert.alert('Error', 'Permiso denegado: ' + response.data.message);
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.response) {
         console.error('Error del servidor:', error.response.data);
         Alert.alert('Error', `Servidor: ${error.response.data.error || 'Desconocido'}`);
@@ -56,6 +63,7 @@ const LoginScreen = ({ navigation, onLoginSuccess }) => {
     }
   };
 
+  const isEmailValid = /^[^\s@]+@gmail\.com$/.test(email);
   return (
     <View style={styles.padre}>
       <View>
@@ -65,8 +73,15 @@ const LoginScreen = ({ navigation, onLoginSuccess }) => {
       <Image source={require('../Assets/perfil.jpg')} style={styles.profile} />
 
       <View style={styles.tarjeta}>
-        {/* Input de Email */}
-        <View style={styles.cajaTexto}>
+
+
+
+        <View
+          style={[
+            styles.cajaTexto,
+            { borderColor: isEmailValid || email === '' ? '#F0F0F0' : 'red', borderWidth: 1 },
+          ]}
+        >
           <TextInput
             placeholder="correo@gmail.com"
             placeholderTextColor="#BDBDBD"
@@ -74,14 +89,17 @@ const LoginScreen = ({ navigation, onLoginSuccess }) => {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
           />
         </View>
 
-        {/* Input de Contraseña */}
+
         <View style={[styles.cajaTexto, styles.passwordContainer]}>
           <TextInput
             style={[styles.inputBox, styles.passwordInput]}
             placeholder="Contraseña"
+            autoCapitalize="none"
             placeholderTextColor="#BDBDBD"
             value={password}
             onChangeText={setPassword}
@@ -99,14 +117,14 @@ const LoginScreen = ({ navigation, onLoginSuccess }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Botón de Login */}
+
         <View style={styles.PadreBoton}>
           <TouchableOpacity style={styles.cajaBoton} onPress={handleLogin}>
             <Text style={styles.TextoBoton}>Iniciar</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Link a Registro */}
+
         <View style={styles.PadreBoton}>
           <TouchableOpacity
             onPress={() => navigation.navigate('CreateUser')}
@@ -173,7 +191,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   passwordInput: {
-    paddingRight: 40, 
+    paddingRight: 40,
   },
   iconContainer: {
     position: 'absolute',

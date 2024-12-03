@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity, Image } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { useNavigation } from '@react-navigation/native'; // Para navegación
+import { useNavigation } from '@react-navigation/native'; 
 import API from '../API/API';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -14,13 +14,24 @@ const RegisterEmpresa = () => {
   const [website, setWebsite] = useState('');
   const [categoria, setCategoria] = useState('');
   const [logo, setLogo] = useState(null);
-  
-  const navigation = useNavigation(); // Hook de navegación
+
+  const navigation = useNavigation(); 
+
+  const limpiarFormulario = () => {
+    setNombreEmpresa('');
+    setDescripcion('');
+    setDireccion('');
+    setTelefono('');
+    setCorreo('');
+    setWebsite('');
+    setCategoria('');
+    setLogo(null);
+  };
 
   const elegirImagen = () => {
     const options = {
-      mediaType: 'photo', // Solo fotos
-      quality: 1, // Calidad máxima
+      mediaType: 'photo', 
+      quality: 1, 
     };
 
     launchImageLibrary(options, (response) => {
@@ -32,13 +43,29 @@ const RegisterEmpresa = () => {
         Alert.alert('Error', 'Hubo un problema con la selección de la imagen.');
       } else {
         const source = { uri: response.assets[0].uri };
-        setLogo(source); // Guardamos la imagen seleccionada
+        setLogo(source);
         Alert.alert('Imagen seleccionada', 'La imagen fue seleccionada correctamente');
       }
     });
   };
 
   const enviarOrganizacion = async () => {
+    if (!nombreEmpresa || !descripcion || !direccion || !telefono || !correo || !website || !categoria) {
+      Alert.alert('Error', 'Por favor, complete todos los campos.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@gmail\.com$/;
+    if (!emailRegex.test(correo)) {
+      Alert.alert('Error', 'Por favor, ingrese un correo válido de Gmail.');
+      return;
+    }
+
+    if (!logo) {
+      Alert.alert('Error', 'Por favor, selecciona un logo para la organización.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('nombre_empresa', nombreEmpresa);
     formData.append('descripcion', descripcion);
@@ -48,22 +75,17 @@ const RegisterEmpresa = () => {
     formData.append('website', website);
     formData.append('categoria', categoria);
 
-    if (logo) {
-      const logoData = {
-        uri: logo.uri,
-        type: 'image/jpeg',
-        name: 'logo.jpg',
-      };
-      formData.append('logo', logoData);
-    } else {
-      Alert.alert('Error', 'Por favor, selecciona un logo para la organización.');
-      return;
-    }
+    const logoData = {
+      uri: logo.uri,
+      type: 'image/jpeg',
+      name: 'logo.jpg',
+    };
+    formData.append('logo', logoData);
 
     try {
       const response = await API.post('/organizaciones', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data', // Para enviar datos de formulario con imágenes
+          'Content-Type': 'multipart/form-data',
         },
       });
 
@@ -71,7 +93,10 @@ const RegisterEmpresa = () => {
         Alert.alert('Éxito', 'La organización se ha creado correctamente', [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Organizaciones'), 
+            onPress: () => {
+              limpiarFormulario();
+              navigation.navigate('Organizaciones');
+            },
           },
         ]);
       } else {
@@ -83,87 +108,97 @@ const RegisterEmpresa = () => {
     }
   };
 
+  const isEmailValid = /^[^\s@]+@gmail\.com$/.test(correo);
+
+
   return (
     <ScrollView>
 
-    <View style={styles.container}>
-      <Text style={styles.title}>Formulario de Registro</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Formulario de Registro</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre de la empresa"
-        value={nombreEmpresa}
-        onChangeText={setNombreEmpresa}
-        placeholderTextColor={'black'}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre de la empresa"
+          value={nombreEmpresa}
+          onChangeText={setNombreEmpresa}
+          placeholderTextColor={'black'}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Descripción"
-        value={descripcion}
-        placeholderTextColor={'black'}
-        onChangeText={setDescripcion}
-        multiline
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Descripción"
+          value={descripcion}
+          placeholderTextColor={'black'}
+          onChangeText={setDescripcion}
+          multiline
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Dirección"
-        value={direccion}
-        placeholderTextColor={'black'}
-        onChangeText={setDireccion}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Dirección"
+          value={direccion}
+          placeholderTextColor={'black'}
+          onChangeText={setDireccion}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Teléfono"
-        value={telefono}
-        placeholderTextColor={'black'}
-        onChangeText={setTelefono}
-        keyboardType="phone-pad"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Teléfono"
+          value={telefono}
+          placeholderTextColor={'black'}
+          onChangeText={setTelefono}
+          keyboardType="phone-pad"
+          maxLength={10}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        value={correo}
-        onChangeText={setCorreo}
-        placeholderTextColor={'black'}
-        keyboardType="email-address"
-      />
+        <TextInput
+          style={[
+            styles.input,
+            { borderColor: isEmailValid || correo === '' ? 'gray' : 'red', borderWidth: 1 },
+          ]}
+          placeholder="Correo electrónico"
+          value={correo}
+          onChangeText={setCorreo}
+          placeholderTextColor={'black'}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Sitio web"
-        value={website}
-        placeholderTextColor={'black'}
-        onChangeText={setWebsite}
-      />
 
-      <TextInput
-        style={styles.input}
-        placeholderTextColor={'black'}
-        placeholder="Categoría"
-        value={categoria}
-        onChangeText={setCategoria}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Sitio web"
+          value={website}
+          placeholderTextColor={'black'}
+          onChangeText={setWebsite}
+        />
 
-      {/* Mostrar la previsualización del logo */}
-      <View style={styles.imagePreviewContainer}>
-        {logo ? (
-          <Image source={logo} style={styles.imagePreview} />
-        ) : (
-          <Text style={styles.imageText}>No se ha seleccionado un logo</Text>
-        )}
+        <TextInput
+          style={styles.input}
+          placeholderTextColor={'black'}
+          placeholder="Categoría"
+          value={categoria}
+          onChangeText={setCategoria}
+        />
+
+        {/* Mostrar la previsualización del logo */}
+        <View style={styles.imagePreviewContainer}>
+          {logo ? (
+            <Image source={logo} style={styles.imagePreview} />
+          ) : (
+            <Text style={styles.imageText}>No se ha seleccionado un logo</Text>
+          )}
+        </View>
+
+        <TouchableOpacity onPress={elegirImagen} style={styles.button}>
+          <Text style={styles.buttonText}>Seleccionar logo</Text>
+        </TouchableOpacity>
+
+        <Button title="Enviar" onPress={enviarOrganizacion} />
       </View>
 
-      <TouchableOpacity onPress={elegirImagen} style={styles.button}>
-        <Text style={styles.buttonText}>Seleccionar logo</Text>
-      </TouchableOpacity>
-
-      <Button title="Enviar" onPress={enviarOrganizacion} />
-    </View>
-          
     </ScrollView>
   );
 };
@@ -179,17 +214,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color:'black'
+    color: 'black'
   },
   input: {
     height: 50,
-    borderColor: 'gray',
     borderWidth: 1,
     marginBottom: 15,
     paddingLeft: 10,
-    color:'black',
+    color: 'black',
     borderRadius: 5,
+    borderColor: 'gray', 
   },
+  
   button: {
     backgroundColor: '#2196F3',
     padding: 10,
